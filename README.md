@@ -1,91 +1,170 @@
 
-# Calculating Distance Lab
+# Euclidean Distance and Nearest Neighbors
+
+## Objectives
+
+* Perform basic data analysis tasks for answering simple analytical questions in Python, Pandas and Numpy. 
+* Understand the significance of euclidean distance towards measuring similarity between data items. 
+* Calculate distance measures for a toy example in a scalable manner. 
 
 ### Introduction
 
-In this lab, you will write methods to calculate the distance of various neighbors from each other.  Once again, let's assume that the $x$ coordinates represent avenues of a neighbor, the $y$ coordinates represent streets.  We will also assume that the distance between each street and the distance between each avenue is the same.
+In this lab, you will write methods to calculate the distance of various neighbors from each other in a neighborhood. 
+
+![](http://newsarchive.heart.org/wp-content/uploads/2017/04/neighborhood.jpg)
+
+Let's assume that the $x$ coordinates represent avenues of a neighbor, the $y$ coordinates represent streets.  We will also assume that the distance between each street and the distance between each avenue is the same.
 
 We will work up to a function called `nearest_neighbors` that given a neighbor, finds the other neighbors who are closest.
 
 ### Gather the data
 
-Let's declare a variable `neighbors` and assign it to an list of dictionaries, each representing the location of a neighbor.
+Let's declare a variable `neighbors` as a pandas data frame, with each row representing the [name, avenue, street] for each neighbor.
 
 
 ```python
-neighbors = [{'name': 'Fred', 'avenue': 4, 'street': 8}, {'name': 'Suzie', 'avenue': 1, 'street': 11}, 
-             {'name': 'Bob', 'avenue': 5, 'street': 8}, {'name': 'Edgar', 'avenue': 6, 'street': 13},
-             {'name': 'Steven', 'avenue': 3, 'street': 6}, {'name': 'Natalie', 'avenue': 5, 'street': 4}]
-```
+import pandas as pd
+neighbors = pd.DataFrame(
+              [['Fred', 4, 8],
+              ['Suzie', 1, 1], 
+              ['Bob', 5, 8], 
+              ['Edgar', 6, 13], 
+              ['Steven', 3, 6], 
+              ['Natalie', 5, 4]], 
+    columns = ['Name', 'Avenue', 'Street'])
 
-
-```python
 neighbors
 ```
 
 
 
 
-    [{'avenue': 4, 'name': 'Fred', 'street': 8},
-     {'avenue': 1, 'name': 'Suzie', 'street': 11},
-     {'avenue': 5, 'name': 'Bob', 'street': 8},
-     {'avenue': 6, 'name': 'Edgar', 'street': 13},
-     {'avenue': 3, 'name': 'Steven', 'street': 6},
-     {'avenue': 5, 'name': 'Natalie', 'street': 4}]
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Name</th>
+      <th>Avenue</th>
+      <th>Street</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Fred</td>
+      <td>4</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Suzie</td>
+      <td>1</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Bob</td>
+      <td>5</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Edgar</td>
+      <td>6</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Steven</td>
+      <td>3</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Natalie</td>
+      <td>5</td>
+      <td>4</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
 
+
+Use this dataframe and build a scatter plot for all 6 neighbors, with avenue placed on x-axis and street placed on y-axis. Label the plot with legend to show each neighbor with different hue value. 
 
 
 ```python
-fred = neighbors[0]
-natalie = neighbors[5]
+# Plot a scatter plot with avenues at x-axis and street numbers at y-axis
+
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+import seaborn as sns
+sns.lmplot(x='Avenue', y='Street', hue='Name', data=neighbors, fit_reg=False, markers='x' );
 ```
 
-> Press shift + enter
 
-### Understand the data
+![png](index_files/index_6_0.png)
 
-Let's plot our neighbors, to get a sense of our data.
+
+We'll start by focusing on the neigbors Fred and Natalie, and points (4, 8) and (5, 4) respectively. 
+
+Create two variables `fred` and `natalie` from above dataframe as numpy arrays. 
 
 
 ```python
-import plotly
+# Create two variables ,'fred' and 'natalie' from by reading appropriate rows from neighbors dataframe
+fred = np.array(neighbors.loc[neighbors['Name'] == 'Fred'])
+natalie = np.array(neighbors.loc[neighbors['Name'] == 'Natalie'])
 
-plotly.offline.init_notebook_mode(connected=True)
-trace0 = dict(x=list(map(lambda neighbor: neighbor['avenue'],neighbors)), 
-              y=list(map(lambda neighbor: neighbor['street'],neighbors)),
-              text=list(map(lambda neighbor: neighbor['name'],neighbors)),
-              mode='markers')
-plotly.offline.iplot(dict(data=[trace0], layout={'xaxis': {'dtick': 1}, 'yaxis': {'dtick': 1}}))
+fred, natalie
+
+# (array([['Fred', 4, 8]], dtype=object),
+#  array([['Natalie', 5, 4]], dtype=object))
 ```
 
 
-<script>requirejs.config({paths: { 'plotly': ['https://cdn.plot.ly/plotly-latest.min']},});if(!window.Plotly) {{require(['plotly'],function(plotly) {window.Plotly=plotly;});}}</script>
 
 
+    (array([['Fred', 4, 8]], dtype=object),
+     array([['Natalie', 5, 4]], dtype=object))
 
-<div id="d3ff6a19-9df2-46e1-b2c6-e5333a815c51" style="height: 525px; width: 100%;" class="plotly-graph-div"></div><script type="text/javascript">require(["plotly"], function(Plotly) { window.PLOTLYENV=window.PLOTLYENV || {};window.PLOTLYENV.BASE_URL="https://plot.ly";Plotly.newPlot("d3ff6a19-9df2-46e1-b2c6-e5333a815c51", [{"x": [4, 1, 5, 6, 3, 5], "y": [8, 11, 8, 13, 6, 4], "text": ["Fred", "Suzie", "Bob", "Edgar", "Steven", "Natalie"], "mode": "markers"}], {"xaxis": {"dtick": 1}, "yaxis": {"dtick": 1}}, {"showLink": true, "linkText": "Export to plot.ly"})});</script>
 
-
-We'll start by focusing on the neigbors Fred and Natalie, and points (4, 8) and (5, 4) respectively.
 
 ### Calculating the sides of the triangle
 
-Remember that to calculate the distance, we use the Pythagorean Theorem to calculate the two shorter sides of the right triangle, and from there can calculate the distance, that is the hypotenuse, of the triangle.  Let's start with calculating the shorter sides and then use that work to calculate the distance. 
+Remember that to calculate the distance, we use the Pythagorean Theorem to calculate the two shorter sides of the right triangle, and from there can calculate the distance, that is the hypotenuse, of the triangle. Let's start with calculating the shorter sides and then use that work to calculate the distance.
 
-Write a function called `street_distance` that calculates how far **in streets** two neighbors are from each other.  So for example, with Natalie at street 4, and Fred at street 8, our `street_distance` function should return the number 4.
+Write a function called `street_distance` that takes in numpy arrays and calculates how far in streets two neighbors are from each other. So for example, with Natalie at street 4, and Fred at street 8, our street_distance function should return the number 4. The distance should always be positive.
 
 
 ```python
 def street_distance(first_neighbor, second_neighbor):
-        return first_neighbor['street'] - second_neighbor['street']
+        d = abs(first_neighbor[0][2] - second_neighbor[0][2])
+        return d
 ```
 
 Now we execute the code, and as you can see from the comment to the right, our expected returned street distance is $4$.
 
 
 ```python
-street_distance(fred, natalie) # 4
+street_distance(fred, natalie)
+
+# 4
 ```
 
 
@@ -95,17 +174,20 @@ street_distance(fred, natalie) # 4
 
 
 
-Write a function called `avenue_distance` that calculates how far in avenues two neighbors are from each other.  The distance should always be positive.
+Similarly, write a function called `avenue_distance` that calculates how far in avenues two neighbors are from each other. The distance should always be positive.
 
 
 ```python
 def avenue_distance(first_neighbor, second_neighbor):
-    return abs(first_neighbor['avenue'] - second_neighbor['avenue'])
+        d = abs(first_neighbor[0][1] - second_neighbor[0][1])
+        return d
 ```
 
 
 ```python
-avenue_distance(fred, natalie) #  1
+avenue_distance(fred, natalie)
+
+# 1
 ```
 
 
@@ -115,40 +197,29 @@ avenue_distance(fred, natalie) #  1
 
 
 
-### Calculating the distance
+### Calculating distance
 
-Now let's begin writing functions involved with calculating that hypotenuse of our right triangle.  Using the Pythagorean Theorem, $a^2 + b^2 = c^2 $, write a function called `distance_between_neighbors_squared` that calculates $c^2$, the length of the hypotenuse squared.
-
-
-```python
-def distance_between_neighbors_squared(first_neighbor, second_neighbor):
-    return street_distance(first_neighbor, second_neighbor)**2 + avenue_distance(first_neighbor, second_neighbor)**2
-```
-
-
-```python
-distance_between_neighbors_squared(fred, natalie) # 17
-```
-
-
-
-
-    17
-
-
-
-Now take the next step, and write a function called `distance`, that given two neigbors returns the distance between them.  
+Now let's begin writing functions involved with calculating that hypotenuse of our right triangle.  Using the Pythagorean Theorem, $\sqrt{a^2 + b^2} = c $, write a function called `distance_between_neighbors` that calculates $c$, the length of the hypotenuse by incorporating above functions to calculate sides.
 
 
 ```python
 import math
+
 def distance(first_neighbor, second_neighbor):
-    return math.sqrt(distance_between_neighbors_squared(first_neighbor, second_neighbor))
+    
+    # Calculate total distance from sides using Pythagoras theorem
+    p = street_distance(first_neighbor, second_neighbor) # Perpendicular
+    q = avenue_distance(first_neighbor, second_neighbor) # Base
+    d = math.sqrt(p**2 + q**2) # Hypotenuse using Pythagoras
+
+    return d
 ```
 
 
 ```python
-distance(fred, natalie) # 4.123105625617661
+distance(fred, natalie)
+
+# 4.123105625617661
 ```
 
 
@@ -160,118 +231,197 @@ distance(fred, natalie) # 4.123105625617661
 
 ### Writing Our "Nearest Neighbors" Functions
 
-This next section will work up to building a `nearest_neighbor` function.  This is a function that given one neigbor, will tell us which neigbors are closest.  How do we write something like this? Can we use our calculation of distance between two neighbors to figure out the closest neighbors to an individual?
+This next section will work up to building a nearest_neighbor function. This is a function that given one neighbor, will tell us which neighbors are closest. How do we write something like this? Can we use our calculation of distance between two neighbors to figure out the closest neighbors to an individual?
 
-Sure, we first need to calculate the distances between one neighbor and all of the others.  Next, we sort those neighbors by their distance from the selected_neighbor.  Finally, we select a given number of the closest neighbors.  Let's work through it.   
+Sure, we first need to calculate the distances between one neighbor and all of the others. Next, we sort those neighbors by their distance from the selected_neighbor. Finally, we select a given number of the closest neighbors. Let's work through it.
 
-Note that we already have a function that calculates the distance between two neighbors.  We may think we could simply use this function to loop through our neighbors, but that would just return an list of distances.  
+Note that we already have a function that calculates the distance between two neighbors. We may think we could simply use this function to loop through our neighbors, but that would just return an list of distances.
+
+Write function `distance_from_fred` that measures the distance between Fred and each of his neighbors. 
 
 
 ```python
-distances = []
-for neighbor in neighbors:
-    distance_between = distance(fred, neighbor)
-    distances.append(distance_between)
+# Write a function that iterates through the dataframe and returns distance of Fred from 
+# each of his neighbors
 
-distances
+def distance_from_fred():
+    
+    dis= []
+    for index, row in neighbors.iterrows():
+        neighbor_iter = [np.array(row)]
+        distance_between = round(distance(fred, neighbor_iter), 2)
+        dis.append(distance_between)
+
+    return dis
+
+distance_from_fred()
+
+# [0.0, 7.62, 1.0, 5.39, 2.24, 4.12]
 ```
 
 
 
 
-    [0.0,
-     4.242640687119285,
-     1.0,
-     5.385164807134504,
-     2.23606797749979,
-     4.123105625617661]
+    [0.0, 7.62, 1.0, 5.39, 2.24, 4.12]
 
 
 
-The returned list from the above procedure isn't super helpful.  We need to know the person associated with each distance.  
+The returned list from the above procedure isn't super helpful. We need to know the person associated with each distance.
 
-So let's accomplish this by writing a function called `distance_with_neighbor` that works like our distance function but instead of returning a float, returns a dictionary representing the `second_neighbor`, and also adds in the a key value pair indicating distance from the `first_neighbor`.
+So let's accomplish this by writing a function called `distance_with_neighbor` that works like our distance function but instead of returning a float, returns a list representing the second_neighbor's attributes.
 
 
 ```python
-import math
+# Create a function to calculate the distance of second neighbor from first
+# Return the features (name, avenue, street) of second neighbor
+
 def distance_with_neighbor(first_neighbor, second_neighbor):
-    neighbor_with_distance = second_neighbor.copy()
-    distance = math.sqrt(distance_between_neighbors_squared(first_neighbor, second_neighbor))
-    neighbor_with_distance['distance'] = distance
-    return neighbor_with_distance
+    
+    d = distance(first_neighbor, second_neighbor)
+    n1_name = first_neighbor[0][0]
+    n2_name = second_neighbor[0][0]
+    n2_st = second_neighbor[0][2]
+    n2_ave = second_neighbor[0][1]
+    
+    return [n1_name, n2_name, n2_ave, n2_st, round(d, 2)]
+
 ```
 
 
 ```python
 distance_with_neighbor(fred, natalie)
-# {'avenue': 5, 'distance': 4.123105625617661, 'name': 'Natalie', 'street': 4}
+
+# ['Fred', 'Natalie', 5, 4, 4.12]
 ```
 
 
 
 
-    {'avenue': 5, 'distance': 4.123105625617661, 'name': 'Natalie', 'street': 4}
+    ['Fred', 'Natalie', 5, 4, 4.12]
 
 
 
-Now write a function called `distance_all` that returns an list representing the distances between a `first_neighbor` and the rest of the neighhbors.  The list should not return the `first_neighbor` in its collection of neighbors. 
+Now write a function called `distance_all` that returns an array representing the distances between a first_neighbor and the rest of the neighhbors in different rows using above format. The list should not return the first_neighbor in its collection of neighbors (as the distance will always be 1).
 
 
 ```python
+# Write a function to measure the distance of first_neighbor to all others
+# Return output as above
+
 def distance_all(first_neighbor, neighbors):
-    remaining_neighbors = list(filter(lambda neighbor: neighbor != first_neighbor, neighbors))
-    return list(map(lambda neighbor: distance_with_neighbor(first_neighbor, neighbor), remaining_neighbors))
+    
+    data = []
+    
+    for index, row in neighbors.iterrows():
+        n = [np.array(row)]
+
+        if n[0][0] == first_neighbor[0][0]:
+            pass
+        else:
+            out = distance_with_neighbor(first_neighbor, n) 
+            data.append(out)
+   
+    return data       
 ```
 
 
 ```python
-distance_all(fred, neighbors)
+d = distance_all(fred, neighbors)
+d
 
-# [{'avenue': 1, 'distance': 4.242640687119285, 'name': 'Suzie', 'street': 11},
-#  {'avenue': 5, 'distance': 1.0, 'name': 'Bob', 'street': 8},
-#  {'avenue': 6, 'distance': 5.385164807134504, 'name': 'Edgar', 'street': 13},
-#  {'avenue': 3, 'distance': 2.23606797749979, 'name': 'Steven', 'street': 6},
-#  {'avenue': 5, 'distance': 4.123105625617661, 'name': 'Natalie', 'street': 4}]
+# [['Fred', 'Suzie', 1, 1, 7.62],
+#  ['Fred', 'Bob', 5, 8, 1.0],
+#  ['Fred', 'Edgar', 6, 13, 5.39],
+#  ['Fred', 'Steven', 3, 6, 2.24],
+#  ['Fred', 'Natalie', 5, 4, 4.12]]
 ```
 
 
 
 
-    [{'avenue': 1, 'distance': 4.242640687119285, 'name': 'Suzie', 'street': 11},
-     {'avenue': 5, 'distance': 1.0, 'name': 'Bob', 'street': 8},
-     {'avenue': 6, 'distance': 5.385164807134504, 'name': 'Edgar', 'street': 13},
-     {'avenue': 3, 'distance': 2.23606797749979, 'name': 'Steven', 'street': 6},
-     {'avenue': 5, 'distance': 4.123105625617661, 'name': 'Natalie', 'street': 4}]
+    [['Fred', 'Suzie', 1, 1, 7.62],
+     ['Fred', 'Bob', 5, 8, 1.0],
+     ['Fred', 'Edgar', 6, 13, 5.39],
+     ['Fred', 'Steven', 3, 6, 2.24],
+     ['Fred', 'Natalie', 5, 4, 4.12]]
 
 
-
-Finally, write a function called `nearest_neighbors` that given a neighbor, returns an list of neighbors, ordered from closest to furthest from the neighbor.  The function should take an third argument that specifies how many "nearest" neighbors are returned.
 
 
 ```python
+d = distance_all(natalie, neighbors)
+d
+
+# [['Natalie', 'Fred', 4, 8, 4.12],
+#  ['Natalie', 'Suzie', 1, 1, 5.0],
+#  ['Natalie', 'Bob', 5, 8, 4.0],
+#  ['Natalie', 'Edgar', 6, 13, 9.06],
+#  ['Natalie', 'Steven', 3, 6, 2.83]]
+```
+
+
+
+
+    [['Natalie', 'Fred', 4, 8, 4.12],
+     ['Natalie', 'Suzie', 1, 1, 5.0],
+     ['Natalie', 'Bob', 5, 8, 4.0],
+     ['Natalie', 'Edgar', 6, 13, 9.06],
+     ['Natalie', 'Steven', 3, 6, 2.83]]
+
+
+
+Finally, write a function called `nearest_neighbors` that given a neighbor, returns an list of neighbors, ordered from closest to furthest from the neighbor. The function should take an third argument that specifies how many "nearest" neighbors are returned.
+
+
+```python
+# Write a function to use distance_all(), sort the data based on distance 
+# Return a specified number of top neighbors
+
+from operator import itemgetter
 def nearest_neighbors(first_neighbor, neighbors, number = None):
-    number = number or len(neighbors) - 1
-    neighbor_distances = distance_all(first_neighbor, neighbors)
-    sorted_neighbors = sorted(neighbor_distances, key=lambda neighbor: neighbor['distance'])
-    return sorted_neighbors[:number]
+    data = distance_all(first_neighbor, neighbors)
+    data_sorted = sorted(data, key=itemgetter(4))
+    return data_sorted[:number]
 ```
 
 
 ```python
-nearest_neighbors(fred, neighbors, 2)
-# [{'avenue': 5, 'distance': 1.0, 'name': 'Bob', 'street': 8},
-#  {'avenue': 3, 'distance': 2.23606797749979, 'name': 'Steven', 'street': 6}]
+nearest_neighbors(fred, neighbors, 3)
+
+# [['Fred', 'Bob', 5, 8, 1.0],
+#  ['Fred', 'Steven', 3, 6, 2.24],
+#  ['Fred', 'Natalie', 5, 4, 4.12]]
 ```
 
 
 
 
-    [{'avenue': 5, 'distance': 1.0, 'name': 'Bob', 'street': 8},
-     {'avenue': 3, 'distance': 2.23606797749979, 'name': 'Steven', 'street': 6}]
+    [['Fred', 'Bob', 5, 8, 1.0],
+     ['Fred', 'Steven', 3, 6, 2.24],
+     ['Fred', 'Natalie', 5, 4, 4.12]]
+
+
+
+
+```python
+nearest_neighbors(natalie, neighbors, 4)
+
+# [['Natalie', 'Steven', 3, 6, 2.83],
+#  ['Natalie', 'Bob', 5, 8, 4.0],
+#  ['Natalie', 'Fred', 4, 8, 4.12],
+#  ['Natalie', 'Suzie', 1, 1, 5.0]]
+```
+
+
+
+
+    [['Natalie', 'Steven', 3, 6, 2.83],
+     ['Natalie', 'Bob', 5, 8, 4.0],
+     ['Natalie', 'Fred', 4, 8, 4.12],
+     ['Natalie', 'Suzie', 1, 1, 5.0]]
 
 
 
 ### Summary
 
-In this lab, you built out the nearest neighbors.  We'll review building out these functions in the next section.
+In this lab, you built out the nearest neighbors.  We'll review building out these functions in the next section for a real problem.
