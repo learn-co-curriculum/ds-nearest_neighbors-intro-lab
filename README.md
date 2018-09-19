@@ -111,15 +111,7 @@ Use this dataframe and build a scatter plot for all 6 neighbors, with avenue pla
 ```python
 # Plot a scatter plot with avenues at x-axis and street numbers at y-axis
 
-import matplotlib.pyplot as plt
-plt.style.use('ggplot')
-import seaborn as sns
-sns.lmplot(x='Avenue', y='Street', hue='Name', data=neighbors, fit_reg=False, markers='x' );
 ```
-
-
-![png](index_files/index_6_0.png)
-
 
 We'll start by focusing on the neigbors Fred and Natalie, and points (4, 8) and (5, 4) respectively. 
 
@@ -128,8 +120,8 @@ Create two variables `fred` and `natalie` from above dataframe as numpy arrays.
 
 ```python
 # Create two variables ,'fred' and 'natalie' from by reading appropriate rows from neighbors dataframe
-fred = np.array(neighbors.loc[neighbors['Name'] == 'Fred'])
-natalie = np.array(neighbors.loc[neighbors['Name'] == 'Natalie'])
+fred = None
+natalie = None
 
 fred, natalie
 
@@ -140,8 +132,7 @@ fred, natalie
 
 
 
-    (array([['Fred', 4, 8]], dtype=object),
-     array([['Natalie', 5, 4]], dtype=object))
+    (None, None)
 
 
 
@@ -154,7 +145,7 @@ Write a function called `street_distance` that takes in numpy arrays and calcula
 
 ```python
 def street_distance(first_neighbor, second_neighbor):
-        d = abs(first_neighbor[0][2] - second_neighbor[0][2])
+        d = None
         return d
 ```
 
@@ -167,19 +158,12 @@ street_distance(fred, natalie)
 # 4
 ```
 
-
-
-
-    4
-
-
-
 Similarly, write a function called `avenue_distance` that calculates how far in avenues two neighbors are from each other. The distance should always be positive.
 
 
 ```python
 def avenue_distance(first_neighbor, second_neighbor):
-        d = abs(first_neighbor[0][1] - second_neighbor[0][1])
+        d = None
         return d
 ```
 
@@ -189,13 +173,6 @@ avenue_distance(fred, natalie)
 
 # 1
 ```
-
-
-
-
-    1
-
-
 
 ### Calculating distance
 
@@ -208,9 +185,9 @@ import math
 def distance(first_neighbor, second_neighbor):
     
     # Calculate total distance from sides using Pythagoras theorem
-    p = street_distance(first_neighbor, second_neighbor) # Perpendicular
-    q = avenue_distance(first_neighbor, second_neighbor) # Base
-    d = math.sqrt(p**2 + q**2) # Hypotenuse using Pythagoras
+    p = None # Perpendicular
+    q = None # Base
+    d = None # Hypotenuse using Pythagoras
 
     return d
 ```
@@ -221,13 +198,6 @@ distance(fred, natalie)
 
 # 4.123105625617661
 ```
-
-
-
-
-    4.123105625617661
-
-
 
 ### Writing Our "Nearest Neighbors" Functions
 
@@ -247,10 +217,8 @@ Write function `distance_from_fred` that measures the distance between Fred and 
 def distance_from_fred():
     
     dis= []
-    for index, row in neighbors.iterrows():
-        neighbor_iter = [np.array(row)]
-        distance_between = round(distance(fred, neighbor_iter), 2)
-        dis.append(distance_between)
+    
+    # Calculate distance 
 
     return dis
 
@@ -262,7 +230,7 @@ distance_from_fred()
 
 
 
-    [0.0, 7.62, 1.0, 5.39, 2.24, 4.12]
+    []
 
 
 
@@ -277,13 +245,13 @@ So let's accomplish this by writing a function called `distance_with_neighbor` t
 
 def distance_with_neighbor(first_neighbor, second_neighbor):
     
-    d = distance(first_neighbor, second_neighbor)
-    n1_name = first_neighbor[0][0]
-    n2_name = second_neighbor[0][0]
-    n2_st = second_neighbor[0][2]
-    n2_ave = second_neighbor[0][1]
+    d = None # Distance
+    n1_name = None # Neighbor 1 Name
+    n2_name = None # Neighbor 2 Name
+    n2_st = None # Neighbor2 St.
+    n2_ave = None # NEighbor 2 avenue
     
-    return [n1_name, n2_name, n2_ave, n2_st, round(d, 2)]
+    pass 
 
 ```
 
@@ -293,13 +261,6 @@ distance_with_neighbor(fred, natalie)
 
 # ['Fred', 'Natalie', 5, 4, 4.12]
 ```
-
-
-
-
-    ['Fred', 'Natalie', 5, 4, 4.12]
-
-
 
 Now write a function called `distance_all` that returns an array representing the distances between a first_neighbor and the rest of the neighhbors in different rows using above format. The list should not return the first_neighbor in its collection of neighbors (as the distance will always be 1).
 
@@ -312,14 +273,7 @@ def distance_all(first_neighbor, neighbors):
     
     data = []
     
-    for index, row in neighbors.iterrows():
-        n = [np.array(row)]
-
-        if n[0][0] == first_neighbor[0][0]:
-            pass
-        else:
-            out = distance_with_neighbor(first_neighbor, n) 
-            data.append(out)
+    # Measure distance in a for loop 
    
     return data       
 ```
@@ -339,11 +293,7 @@ d
 
 
 
-    [['Fred', 'Suzie', 1, 1, 7.62],
-     ['Fred', 'Bob', 5, 8, 1.0],
-     ['Fred', 'Edgar', 6, 13, 5.39],
-     ['Fred', 'Steven', 3, 6, 2.24],
-     ['Fred', 'Natalie', 5, 4, 4.12]]
+    []
 
 
 
@@ -362,11 +312,7 @@ d
 
 
 
-    [['Natalie', 'Fred', 4, 8, 4.12],
-     ['Natalie', 'Suzie', 1, 1, 5.0],
-     ['Natalie', 'Bob', 5, 8, 4.0],
-     ['Natalie', 'Edgar', 6, 13, 9.06],
-     ['Natalie', 'Steven', 3, 6, 2.83]]
+    []
 
 
 
@@ -379,9 +325,9 @@ Finally, write a function called `nearest_neighbors` that given a neighbor, retu
 
 from operator import itemgetter
 def nearest_neighbors(first_neighbor, neighbors, number = None):
-    data = distance_all(first_neighbor, neighbors)
-    data_sorted = sorted(data, key=itemgetter(4))
-    return data_sorted[:number]
+    data = None # Calculate all distances
+    data_sorted = None # Sort the data and pick top n
+    return data_sorted
 ```
 
 
@@ -394,15 +340,6 @@ nearest_neighbors(fred, neighbors, 3)
 ```
 
 
-
-
-    [['Fred', 'Bob', 5, 8, 1.0],
-     ['Fred', 'Steven', 3, 6, 2.24],
-     ['Fred', 'Natalie', 5, 4, 4.12]]
-
-
-
-
 ```python
 nearest_neighbors(natalie, neighbors, 4)
 
@@ -411,16 +348,6 @@ nearest_neighbors(natalie, neighbors, 4)
 #  ['Natalie', 'Fred', 4, 8, 4.12],
 #  ['Natalie', 'Suzie', 1, 1, 5.0]]
 ```
-
-
-
-
-    [['Natalie', 'Steven', 3, 6, 2.83],
-     ['Natalie', 'Bob', 5, 8, 4.0],
-     ['Natalie', 'Fred', 4, 8, 4.12],
-     ['Natalie', 'Suzie', 1, 1, 5.0]]
-
-
 
 ### Summary
 
